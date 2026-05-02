@@ -20,7 +20,7 @@ app.add_middleware(
 
 # ─── Groq client ─────────────────────────────────────────────────────────────
 # Get your FREE key at https://console.groq.com (takes 2 mins)
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "gsk_xxxx")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "gsk_xxxxxxxxx")
 client = Groq(api_key=GROQ_API_KEY)
 
 # ─── Input model ─────────────────────────────────────────────────────────────
