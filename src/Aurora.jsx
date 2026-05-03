@@ -22,6 +22,7 @@ export default function Aurora({colorStops=['#4361ee','#3a86ff','#7209b7'],ampli
     const update=t=>{animId=requestAnimationFrame(update);const p=propsRef.current;program.uniforms.uTime.value=t*0.001*(p.speed??0.5)*0.1;program.uniforms.uAmplitude.value=p.amplitude??1.0;program.uniforms.uBlend.value=p.blend??0.5;program.uniforms.uColorStops.value=(p.colorStops??colorStops).map(hex=>{const c=new Color(hex);return[c.r,c.g,c.b];});renderer.render({scene:mesh});};
     animId=requestAnimationFrame(update);resize();
     return()=>{cancelAnimationFrame(animId);window.removeEventListener('resize',resize);if(ctn&&gl.canvas.parentNode===ctn)ctn.removeChild(gl.canvas);gl.getExtension('WEBGL_lose_context')?.loseContext();};
-  },[amplitude]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [amplitude]);
   return <div ref={ctnDom} className="aurora-container"/>;
 }

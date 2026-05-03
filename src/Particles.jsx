@@ -24,6 +24,7 @@ const Particles=({particleCount=65,particleSpread=11,speed=0.05,particleColors=[
     const update=t=>{animId=requestAnimationFrame(update);elapsed+=(t-lastTime)*speed;lastTime=t;program.uniforms.uTime.value=elapsed*0.001;if(moveParticlesOnHover){particles.position.x=-mouseRef.current.x*particleHoverFactor;particles.position.y=-mouseRef.current.y*particleHoverFactor;}if(!disableRotation){particles.rotation.x=Math.sin(elapsed*0.0002)*0.1;particles.rotation.y=Math.cos(elapsed*0.0005)*0.15;particles.rotation.z+=0.01*speed;}renderer.render({scene:particles,camera});};
     animId=requestAnimationFrame(update);
     return()=>{window.removeEventListener('resize',resize);if(moveParticlesOnHover)container.removeEventListener('mousemove',handleMouseMove);cancelAnimationFrame(animId);if(container.contains(gl.canvas))container.removeChild(gl.canvas);};
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   },[particleCount,particleSpread,speed,moveParticlesOnHover,particleHoverFactor,alphaParticles,particleBaseSize,sizeRandomness,cameraDistance,disableRotation,pixelRatio]);
   return <div ref={containerRef} className={`particles-container ${className}`}/>;
 };
