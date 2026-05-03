@@ -1,7 +1,7 @@
 # 🛡️ Is This Scam?
 ### India's AI-Powered Scam Detector
 
-Built by **Sahina Khatun** & **Madhumita Saha** — two students from Kolkata 🇮🇳
+Built by **Sahina Khatun** & **Madhumita Saha** - two students from Kolkata 🇮🇳
 
 ---
 
