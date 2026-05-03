@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 
 export default function Navbar({ theme }) {
   const location = useLocation();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen] = useState(false);
   const primary = theme?.primary || "#4361ee";
 
   const links = [

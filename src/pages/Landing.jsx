@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import Aurora from "../Aurora";
 
@@ -214,7 +214,7 @@ const s = {
   // Steps
   stepsRow: { display: "flex", gap: 0, flexWrap: "wrap", position: "relative" },
   stepCard: { flex: 1, minWidth: 220, padding: "0 28px 0 0", position: "relative" },
-  stepNum:  { fontSize: 36, fontWeight: 900, fontFamily: "'Cormorant Garamond', serif", border: "1px solid", display: "inline-block", width: 56, height: 56, borderRadius: "50%", lineHeight: "54px", textAlign: "center", marginBottom: 16, fontSize: 20 },
+  stepNum:  { fontSize: 36, fontWeight: 900, fontFamily: "'Cormorant Garamond', serif", border: "1px solid", display: "inline-block", width: 56, height: 56, borderRadius: "50%", lineHeight: "54px", textAlign: "center", marginBottom: 16 },
   stepTitle: { fontSize: 16, fontWeight: 700, color: "#fff", margin: "0 0 8px" },
   stepDesc:  { fontSize: 13, color: "#7777aa", lineHeight: 1.6 },
   stepArrow: { position: "absolute", right: 0, top: 14, fontSize: 20, opacity: 0.4 },
