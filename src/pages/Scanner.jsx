@@ -206,7 +206,7 @@ export default function Scanner({ theme, setThemeKey }) {
     setError(null);
     setThemeKey("default");
     try {
-      const res = await fetch("http://127.0.0.1:8000/check", {
+      const res = await fetch("https://isthisscam-backend.onrender.com/check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: input }),
