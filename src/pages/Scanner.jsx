@@ -11,28 +11,23 @@ const LANGUAGES = [
 ];
 
 const EXAMPLES = [
-  // 🔴 SCAM (realistic)
-  { label: "📦 Courier Fee", text: "Your parcel is held at customs. Pay ₹299 clearance fee now: http://delivery-update-india.xyz", cat: "scam" },
-  { label: "💸 Loan Approval", text: "Congratulations! Your instant loan is approved. Pay ₹2,100 processing fee to receive funds today.", cat: "scam" },
-  { label: "📲 OTP Scam", text: "Your OTP is 839201 for account verification. Share it with our executive to complete process.", cat: "scam" },
-  { label: "🎓 Scholarship Scam", text: "You are selected for Govt scholarship ₹75,000. Pay ₹1,500 registration fee to claim.", cat: "scam" },
-  { label: "💼 Fake HR", text: "We saw your profile on Naukri. Job confirmed. Send ₹999 for document verification.", cat: "scam" },
-  { label: "🏦 RBI Alert", text: "RBI notice: Your account will be frozen. Verify immediately: http://rbi-secure-update.xyz", cat: "scam" },
-  { label: "🎁 Gift Link", text: "You received a gift 🎁 Click to claim now: http://freegift-card.xyz", cat: "scam" },
-
-  // 🟢 SAFE (normal real messages)
-  { label: "🏦 Bank Debit", text: "₹1,250 debited from A/c XX1234 on 02-May. If not you, contact your bank immediately.", cat: "safe" },
-  { label: "📱 OTP Secure", text: "Your OTP for login is 552918. Do not share this code with anyone.", cat: "safe" },
-  { label: "🚕 Ola Ride", text: "Your Ola ride is confirmed. Driver Rajesh will arrive in 3 mins.", cat: "safe" },
-  { label: "📧 Interview Mail", text: "Dear candidate, your interview is scheduled tomorrow at 10 AM. Please join via Google Meet.", cat: "safe" },
-  { label: "💳 Transaction Alert", text: "INR 2,000 spent on your HDFC card ending 8890 at Amazon.", cat: "safe" },
-
-  // 🟡 GREY (ambiguous / tricky)
-  { label: "📢 Sale Ad", text: "Mega Sale! 70% OFF on all items today only. Visit our website now!", cat: "grey" },
-  { label: "💬 Unknown DM", text: "Hey, are you looking for part-time income? I have a simple opportunity.", cat: "grey" },
-  { label: "🔗 Short Link", text: "Bro this is crazy 😂 https://tinyurl.com/2p9abcde", cat: "grey" },
-  { label: "📈 Investment Tip", text: "Invest ₹5,000 today and earn guaranteed ₹15,000 in 7 days!", cat: "grey" },
-  { label: "📨 Random Offer", text: "We have an exclusive offer for you. Reply YES to know more.", cat: "grey" },
+  { label: "📦 Courier Fee",     text: "Your parcel is held at customs. Pay ₹299 clearance fee now: http://delivery-update-india.xyz", cat: "scam" },
+  { label: "💸 Loan Approval",   text: "Congratulations! Your instant loan is approved. Pay ₹2,100 processing fee to receive funds today.", cat: "scam" },
+  { label: "📲 OTP Scam",        text: "Your OTP is 839201 for account verification. Share it with our executive to complete process.", cat: "scam" },
+  { label: "🎓 Scholarship Scam",text: "You are selected for Govt scholarship ₹75,000. Pay ₹1,500 registration fee to claim.", cat: "scam" },
+  { label: "💼 Fake HR",         text: "We saw your profile on Naukri. Job confirmed. Send ₹999 for document verification.", cat: "scam" },
+  { label: "🏦 RBI Alert",       text: "RBI notice: Your account will be frozen. Verify immediately: http://rbi-secure-update.xyz", cat: "scam" },
+  { label: "🎁 Gift Link",       text: "You received a gift 🎁 Click to claim now: http://freegift-card.xyz", cat: "scam" },
+  { label: "🏦 Bank Debit",      text: "₹1,250 debited from A/c XX1234 on 02-May. If not you, contact your bank immediately.", cat: "safe" },
+  { label: "📱 OTP Secure",      text: "Your OTP for login is 552918. Do not share this code with anyone.", cat: "safe" },
+  { label: "🚕 Ola Ride",        text: "Your Ola ride is confirmed. Driver Rajesh will arrive in 3 mins.", cat: "safe" },
+  { label: "📧 Interview Mail",  text: "Dear candidate, your interview is scheduled tomorrow at 10 AM. Please join via Google Meet.", cat: "safe" },
+  { label: "💳 Transaction Alert",text: "INR 2,000 spent on your HDFC card ending 8890 at Amazon.", cat: "safe" },
+  { label: "📢 Sale Ad",         text: "Mega Sale! 70% OFF on all items today only. Visit our website now!", cat: "grey" },
+  { label: "💬 Unknown DM",      text: "Hey, are you looking for part-time income? I have a simple opportunity.", cat: "grey" },
+  { label: "🔗 Short Link",      text: "Bro this is crazy 😂 https://tinyurl.com/2p9abcde", cat: "grey" },
+  { label: "📈 Investment Tip",  text: "Invest ₹5,000 today and earn guaranteed ₹15,000 in 7 days!", cat: "grey" },
+  { label: "📨 Random Offer",    text: "We have an exclusive offer for you. Reply YES to know more.", cat: "grey" },
 ];
 
 const LOADING_STEPS = [
@@ -42,6 +37,105 @@ const LOADING_STEPS = [
   "📞 Cross-referencing UPI / phone via Sanchar Saathi…",
   "📊 Calculating scam probability score…",
 ];
+
+// ── Feedback Component ────────────────────────────────────────────────────────
+function FeedbackSection({ theme }) {
+  const [feedback,    setFeedback]    = useState(null); // "yes" | "no" | null
+  const [showInput,   setShowInput]   = useState(false);
+  const [correction,  setCorrection]  = useState("");
+  const [submitted,   setSubmitted]   = useState(false);
+  const primary = theme?.primary || "#4361ee";
+
+  const handleYes = () => {
+    setFeedback("yes");
+    setShowInput(false);
+    setSubmitted(true);
+  };
+
+  const handleNo = () => {
+    setFeedback("no");
+    setShowInput(true);
+    setSubmitted(false);
+  };
+
+  const handleSubmit = () => {
+    if (!correction.trim()) return;
+    // For now just store in sessionStorage — will connect to DB later
+    const existing = JSON.parse(sessionStorage.getItem("isthisscam_feedback") || "[]");
+    existing.push({ feedback: "wrong", correction, timestamp: new Date().toISOString() });
+    sessionStorage.setItem("isthisscam_feedback", JSON.stringify(existing));
+    setSubmitted(true);
+    setShowInput(false);
+  };
+
+  if (submitted) {
+    return (
+      <div style={{ ...s.feedbackWrap, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+        <div style={s.feedbackThanks}>
+          {feedback === "yes" ? "✅" : "🙏"} Thank you for your feedback! It helps us improve.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ ...s.feedbackWrap, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+      <div style={s.feedbackLabel}>Was this result correct?</div>
+
+      <div style={s.feedbackBtns}>
+        {/* 👍 Yes */}
+        <button
+          style={{
+            ...s.feedbackBtn,
+            ...(feedback === "yes"
+              ? { background: "rgba(34,197,94,0.15)", borderColor: "#22c55e", color: "#22c55e" }
+              : {}),
+          }}
+          onClick={handleYes}
+        >
+          👍 Yes, Correct
+        </button>
+
+        {/* 👎 No */}
+        <button
+          style={{
+            ...s.feedbackBtn,
+            ...(feedback === "no"
+              ? { background: "rgba(255,77,109,0.15)", borderColor: "#ff4d6d", color: "#ff4d6d" }
+              : {}),
+          }}
+          onClick={handleNo}
+        >
+          👎 No, Wrong
+        </button>
+      </div>
+
+      {/* Correction input — shows only on 👎 */}
+      {showInput && (
+        <div style={s.correctionWrap}>
+          <div style={s.correctionLabel}>What was it actually? (optional)</div>
+          <textarea
+            value={correction}
+            onChange={(e) => setCorrection(e.target.value)}
+            placeholder="e.g. This was a legitimate bank message, not a scam..."
+            style={s.correctionInput}
+          />
+          <button
+            style={{
+              ...s.submitBtn,
+              background: `${primary}22`,
+              borderColor: `${primary}55`,
+              color: primary,
+            }}
+            onClick={handleSubmit}
+          >
+            Submit Feedback
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -101,13 +195,12 @@ function LangExplanation({ explanation, theme }) {
 }
 
 function ResultCard({ result, theme }) {
-  const score = result.scam_score ?? result.score ?? 0;
-  const risk = getRiskConfig(score);
-  const signals = result.signals ?? [];
+  const score       = result.scam_score ?? result.score ?? 0;
+  const risk        = getRiskConfig(score);
+  const signals     = result.signals ?? [];
   const explanation = result.explanation ?? { english: result.result || "—", hindi: "—", bengali: "—" };
-  const stats = result.stats ?? {};
+  const stats       = result.stats ?? {};
   const [hoveredBtn, setHoveredBtn] = useState(null);
-
   const t = THEMES[getThemeFromScore(score)];
 
   return (
@@ -150,9 +243,9 @@ function ResultCard({ result, theme }) {
       {(stats.reports || stats.loss || stats.victims) && (
         <div style={s.statBar}>
           {[
-            { num: stats.reports, label: "Reports" },
-            { num: stats.loss,    label: "Est. Loss" },
-            { num: stats.victims, label: "Victims" },
+            { num: stats.reports, label: "Reports"   },
+            { num: stats.loss,    label: "Est. Loss"  },
+            { num: stats.victims, label: "Victims"    },
           ].map((it, i) => (
             <div key={i} style={{ ...s.statItem, borderRight: i < 2 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
               <div style={{ ...s.statNum, color: risk.color }}>{it.num || "—"}</div>
@@ -179,11 +272,15 @@ function ResultCard({ result, theme }) {
           onMouseEnter={() => setHoveredBtn("s")}
           onMouseLeave={() => setHoveredBtn(null)}
           onClick={() => {
-            const text = encodeURIComponent(`⚠️ Scam Alert! Risk Score: ${score}%\nStay safe! Check at isthisscam.in`);
+            const text = encodeURIComponent(`⚠️ Scam Alert! Risk Score: ${score}%\nStay safe! Check at isthisscam.vercel.app`);
             window.open(`https://wa.me/?text=${text}`, "_blank");
           }}
         >📤 Share Warning</button>
       </div>
+
+      {/* ⭐ Feedback Section */}
+      <FeedbackSection theme={theme} />
+
     </BorderGlow>
   );
 }
@@ -216,7 +313,7 @@ export default function Scanner({ theme, setThemeKey }) {
       setResult(data);
       setThemeKey(getThemeFromScore(data.scam_score ?? data.score ?? 0));
     } catch (err) {
-      setError(err.message || "Backend error. Make sure FastAPI is running on port 8000.");
+      setError(err.message || "Backend error. Make sure FastAPI is running.");
     } finally {
       setLoading(false);
     }
@@ -227,11 +324,13 @@ export default function Scanner({ theme, setThemeKey }) {
   return (
     <div style={s.page}>
       <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes spin    { to { transform: rotate(360deg); } }
+        @keyframes fadeUp  { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes fadeIn  { from { opacity:0; } to { opacity:1; } }
         * { box-sizing: border-box; }
         textarea:focus { border-color: ${primary}66 !important; box-shadow: 0 0 0 3px ${primary}14 !important; outline: none; }
         .ex-btn:hover { border-color: ${primary}66 !important; color: ${primary} !important; background: ${primary}10 !important; }
+        .feedback-btn:hover { opacity: 0.85; transform: translateY(-1px); }
       `}</style>
 
       <div style={s.main}>
@@ -270,7 +369,6 @@ export default function Scanner({ theme, setThemeKey }) {
               placeholder={"e.g. https://sbi-kyc-update.xyz/verify\nOR  'Aapko ₹50,000 ka prize mila hai! Abhi claim karein...'"}
               style={{ ...s.textarea, borderColor: `${primary}22` }}
             />
-            {/* Example buttons */}
             <div style={s.exRow}>
               <span style={s.tryLabel}>Try:</span>
               {EXAMPLES.map((ex) => (
@@ -280,8 +378,8 @@ export default function Scanner({ theme, setThemeKey }) {
                   style={{
                     ...s.exBtn,
                     borderColor: exHovered === ex.label ? `${primary}55` : "rgba(255,255,255,0.08)",
-                    color: exHovered === ex.label ? primary : "#8888aa",
-                    background: exHovered === ex.label ? `${primary}10` : "rgba(255,255,255,0.03)",
+                    color:       exHovered === ex.label ? primary         : "#8888aa",
+                    background:  exHovered === ex.label ? `${primary}10`  : "rgba(255,255,255,0.03)",
                   }}
                   onMouseEnter={() => setExHovered(ex.label)}
                   onMouseLeave={() => setExHovered(null)}
@@ -300,10 +398,10 @@ export default function Scanner({ theme, setThemeKey }) {
           disabled={!canScan}
           style={{
             ...s.scanBtn,
-            background: theme?.scanBtn || "linear-gradient(135deg, #4361ee, #3a86ff)",
-            boxShadow: scanHover && canScan ? `0 8px 36px ${primary}55` : `0 4px 20px ${primary}33`,
-            opacity: canScan ? 1 : 0.5,
-            transform: scanHover && canScan ? "translateY(-2px)" : "translateY(0)",
+            background:  theme?.scanBtn || "linear-gradient(135deg, #4361ee, #3a86ff)",
+            boxShadow:   scanHover && canScan ? `0 8px 36px ${primary}55` : `0 4px 20px ${primary}33`,
+            opacity:     canScan ? 1 : 0.5,
+            transform:   scanHover && canScan ? "translateY(-2px)" : "translateY(0)",
           }}
           onMouseEnter={() => setScanHover(true)}
           onMouseLeave={() => setScanHover(false)}
@@ -342,47 +440,37 @@ export default function Scanner({ theme, setThemeKey }) {
   );
 }
 
+// ── Styles ────────────────────────────────────────────────────────────────────
 const s = {
   page: { background: "#050510", minHeight: "calc(100vh - 60px)", color: "#e0e0f0", fontFamily: "'Space Grotesk', sans-serif" },
   main: { maxWidth: 820, margin: "0 auto", padding: "32px 20px 60px", position: "relative", zIndex: 1 },
 
-  heroWrap: { position: "relative", textAlign: "center", marginBottom: 28, padding: "44px 20px 36px", borderRadius: 20, overflow: "hidden" },
-  auroraWrap: { position: "absolute", inset: 0, opacity: 0.4, pointerEvents: "none" },
-  hero: { position: "relative", zIndex: 2 },
-  heroPill: { display: "inline-block", fontSize: 11, fontWeight: 700, padding: "4px 16px", borderRadius: 20, marginBottom: 14, letterSpacing: "0.5px", transition: "all 0.8s ease" },
-  heroTitle: {
-    fontFamily: "'Cormorant Garamond', serif",
-    fontSize: "clamp(30px, 5vw, 50px)", fontWeight: 700,
-    color: "#fff", lineHeight: 1.12, margin: "0 0 10px",
-  },
-  heroSub: { color: "#6666aa", fontSize: 13, margin: 0 },
+  heroWrap:  { position: "relative", textAlign: "center", marginBottom: 28, padding: "44px 20px 36px", borderRadius: 20, overflow: "hidden" },
+  auroraWrap:{ position: "absolute", inset: 0, opacity: 0.4, pointerEvents: "none" },
+  hero:      { position: "relative", zIndex: 2 },
+  heroPill:  { display: "inline-block", fontSize: 11, fontWeight: 700, padding: "4px 16px", borderRadius: 20, marginBottom: 14, letterSpacing: "0.5px", transition: "all 0.8s ease" },
+  heroTitle: { fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(30px, 5vw, 50px)", fontWeight: 700, color: "#fff", lineHeight: 1.12, margin: "0 0 10px" },
+  heroSub:   { color: "#6666aa", fontSize: 13, margin: 0 },
 
   inputInner: { padding: "20px 22px 16px" },
   inputLabel: { fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 10, transition: "color 0.8s ease" },
   textarea: {
     width: "100%", minHeight: 108,
-    background: "rgba(0,0,0,0.5)",
-    border: "1px solid",
-    borderRadius: 10, padding: 14,
-    color: "#e0e0f0", fontSize: 14,
-    fontFamily: "'Space Grotesk', sans-serif",
-    resize: "vertical",
-    transition: "border-color 0.3s, box-shadow 0.3s",
-    lineHeight: 1.6,
+    background: "rgba(0,0,0,0.5)", border: "1px solid",
+    borderRadius: 10, padding: 14, color: "#e0e0f0", fontSize: 14,
+    fontFamily: "'Space Grotesk', sans-serif", resize: "vertical",
+    transition: "border-color 0.3s, box-shadow 0.3s", lineHeight: 1.6,
   },
 
-  exRow: { display: "flex", gap: 7, flexWrap: "wrap", marginTop: 12, alignItems: "center" },
+  exRow:    { display: "flex", gap: 7, flexWrap: "wrap", marginTop: 12, alignItems: "center" },
   tryLabel: { fontSize: 11, color: "#333355" },
-  exBtn: { fontSize: 11, padding: "5px 11px", borderRadius: 20, cursor: "pointer", border: "1px solid", transition: "all 0.2s", fontFamily: "'Space Grotesk', sans-serif" },
+  exBtn:    { fontSize: 11, padding: "5px 11px", borderRadius: 20, cursor: "pointer", border: "1px solid", transition: "all 0.2s", fontFamily: "'Space Grotesk', sans-serif" },
 
   scanBtn: {
     width: "100%", marginTop: 14, padding: "16px",
-    border: "none", borderRadius: 12,
-    color: "#fff", fontSize: 15, fontWeight: 700,
-    fontFamily: "'Space Grotesk', sans-serif",
-    cursor: "pointer", transition: "all 0.25s ease",
-    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-    letterSpacing: "0.3px",
+    border: "none", borderRadius: 12, color: "#fff", fontSize: 15, fontWeight: 700,
+    fontFamily: "'Space Grotesk', sans-serif", cursor: "pointer", transition: "all 0.25s ease",
+    display: "flex", alignItems: "center", justifyContent: "center", gap: 8, letterSpacing: "0.3px",
   },
   scanSpinner: {
     display: "inline-block", width: 14, height: 14,
@@ -391,42 +479,67 @@ const s = {
   },
   hint: { textAlign: "center", fontSize: 11, color: "#1e1e36", marginTop: 8 },
 
-  loadCard: { background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "22px 18px", marginTop: 18 },
-  loadTop:  { textAlign: "center", marginBottom: 14 },
-  spinner:  { width: 34, height: 34, border: "2px solid rgba(255,255,255,0.07)", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 10px", transition: "border-top-color 0.8s ease" },
+  loadCard:  { background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "22px 18px", marginTop: 18 },
+  loadTop:   { textAlign: "center", marginBottom: 14 },
+  spinner:   { width: 34, height: 34, border: "2px solid rgba(255,255,255,0.07)", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 10px", transition: "border-top-color 0.8s ease" },
   loadTitle: { fontWeight: 700, color: "#ccc", margin: "0 0 4px", fontSize: 13 },
   loadSub:   { color: "#333355", fontSize: 11, margin: 0 },
 
   errorCard: { marginTop: 18, background: "rgba(255,77,109,0.07)", border: "1px solid rgba(255,77,109,0.25)", borderRadius: 12, padding: "13px 18px", color: "#ff4d6d", fontSize: 13 },
 
-  scoreHeader: { padding: "22px 22px 14px", display: "flex", gap: 18, alignItems: "center" },
-  circle: { width: 86, height: 86, borderRadius: "50%", border: "2.5px solid", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.4)", transition: "box-shadow 0.4s" },
-  circleNum:   { fontSize: 24, fontWeight: 900, fontFamily: "'Cormorant Garamond', serif", lineHeight: 1 },
-  circleLabel: { fontSize: 8, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginTop: 2 },
-
+  scoreHeader:  { padding: "22px 22px 14px", display: "flex", gap: 18, alignItems: "center" },
+  circle:       { width: 86, height: 86, borderRadius: "50%", border: "2.5px solid", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.4)", transition: "box-shadow 0.4s" },
+  circleNum:    { fontSize: 24, fontWeight: 900, fontFamily: "'Cormorant Garamond', serif", lineHeight: 1 },
+  circleLabel:  { fontSize: 8, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginTop: 2 },
   verdictBadge: { display: "inline-block", padding: "4px 12px", borderRadius: 20, fontSize: 11, fontWeight: 800, fontFamily: "'Space Grotesk', sans-serif", letterSpacing: "0.3px", marginBottom: 8 },
   categoryText: { fontSize: 11, color: "#6666aa", marginBottom: 8 },
-  barOuter: { height: 5, background: "rgba(255,255,255,0.06)", borderRadius: 100, overflow: "hidden" },
-  barInner: { height: "100%", borderRadius: 100, transition: "width 1.3s ease" },
+  barOuter:     { height: 5, background: "rgba(255,255,255,0.06)", borderRadius: 100, overflow: "hidden" },
+  barInner:     { height: "100%", borderRadius: 100, transition: "width 1.3s ease" },
 
-  section: { padding: "14px 22px", borderTop: "1px solid rgba(255,255,255,0.05)" },
+  section:      { padding: "14px 22px", borderTop: "1px solid rgba(255,255,255,0.05)" },
   sectionLabel: { fontSize: 10, fontWeight: 700, color: "#5555aa", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 10 },
 
   signalList: { display: "flex", flexDirection: "column", gap: 7 },
-  signal: { display: "flex", gap: 11, padding: "9px 13px", borderRadius: 8, alignItems: "flex-start" },
+  signal:     { display: "flex", gap: 11, padding: "9px 13px", borderRadius: 8, alignItems: "flex-start" },
   signalIcon:  { fontSize: 14, flexShrink: 0, marginTop: 1 },
   signalTitle: { fontSize: 12, fontWeight: 700, color: "#ddddf0" },
   signalDesc:  { fontSize: 11, color: "#7777aa", marginTop: 2, lineHeight: 1.5 },
 
-  langTabs: { display: "flex", gap: 6, marginBottom: 10 },
-  langTab: { padding: "4px 12px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer", border: "1px solid rgba(255,255,255,0.08)", background: "transparent", color: "#7777aa", transition: "all 0.2s", fontFamily: "'Space Grotesk', sans-serif" },
+  langTabs:    { display: "flex", gap: 6, marginBottom: 10 },
+  langTab:     { padding: "4px 12px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer", border: "1px solid rgba(255,255,255,0.08)", background: "transparent", color: "#7777aa", transition: "all 0.2s", fontFamily: "'Space Grotesk', sans-serif" },
   langContent: { background: "rgba(0,0,0,0.3)", borderRadius: 9, padding: "12px 14px", fontSize: 12, lineHeight: 1.7, color: "#bbbbcc" },
 
-  statBar: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", borderTop: "1px solid rgba(255,255,255,0.05)" },
-  statItem: { padding: "12px", textAlign: "center" },
-  statNum:  { fontSize: 16, fontWeight: 800, fontFamily: "'Cormorant Garamond', serif" },
+  statBar:   { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", borderTop: "1px solid rgba(255,255,255,0.05)" },
+  statItem:  { padding: "12px", textAlign: "center" },
+  statNum:   { fontSize: 16, fontWeight: 800, fontFamily: "'Cormorant Garamond', serif" },
   statLabel: { fontSize: 9, color: "#5555aa", marginTop: 3, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" },
 
-  actions: { display: "flex", gap: 8, padding: "12px 18px", borderTop: "1px solid rgba(255,255,255,0.05)" },
+  actions:   { display: "flex", gap: 8, padding: "12px 18px", borderTop: "1px solid rgba(255,255,255,0.05)" },
   actionBtn: { flex: 1, padding: "10px", borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: "pointer", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#9999bb", transition: "all 0.2s", fontFamily: "'Space Grotesk', sans-serif" },
+
+  // ── Feedback styles ──────────────────────────────────────────────────────────
+  feedbackWrap:   { padding: "14px 18px" },
+  feedbackLabel:  { fontSize: 12, color: "#7777aa", marginBottom: 10, textAlign: "center", fontWeight: 600 },
+  feedbackBtns:   { display: "flex", gap: 10, justifyContent: "center" },
+  feedbackBtn: {
+    padding: "8px 22px", borderRadius: 20, fontSize: 12, fontWeight: 700,
+    cursor: "pointer", border: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(255,255,255,0.03)", color: "#9999bb",
+    transition: "all 0.2s", fontFamily: "'Space Grotesk', sans-serif",
+  },
+  feedbackThanks: { fontSize: 13, color: "#22c55e", textAlign: "center", fontWeight: 600, padding: "4px 0", animation: "fadeIn 0.4s ease" },
+  correctionWrap:  { marginTop: 12, animation: "fadeIn 0.3s ease" },
+  correctionLabel: { fontSize: 11, color: "#6666aa", marginBottom: 6 },
+  correctionInput: {
+    width: "100%", minHeight: 70,
+    background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 8, padding: 10, color: "#e0e0f0", fontSize: 12,
+    fontFamily: "'Space Grotesk', sans-serif", resize: "vertical",
+    outline: "none", lineHeight: 1.5,
+  },
+  submitBtn: {
+    marginTop: 8, padding: "8px 20px", borderRadius: 8,
+    fontSize: 12, fontWeight: 700, cursor: "pointer", border: "1px solid",
+    transition: "all 0.2s", fontFamily: "'Space Grotesk', sans-serif",
+  },
 };
