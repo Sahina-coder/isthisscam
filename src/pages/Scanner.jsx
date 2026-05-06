@@ -72,7 +72,7 @@ function FeedbackSection({ theme }) {
     return (
       <div style={{ ...s.feedbackWrap, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
         <div style={s.feedbackThanks}>
-          {feedback === "yes" ? "✅" : "🙏"} Thank you for your feedback! It helps us improve.
+          {feedback === "yes" ? "✅" : "🙏"} Thank you for your valuable feedback! It helps us improve.
         </div>
       </div>
     );
