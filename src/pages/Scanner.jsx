@@ -1,3 +1,4 @@
+import ImageUpload from "../ImageUpload";
 import { useState } from "react";
 import Aurora from "../Aurora";
 import BorderGlow from "../BorderGlow";
@@ -38,9 +39,107 @@ const LOADING_STEPS = [
   "📊 Calculating scam probability score…",
 ];
 
+// ── Scan History Component ────────────────────────────────────────────────────
+function ScanHistory({ history, onReload, theme }) {
+  const [open, setOpen] = useState(true);
+  const primary = theme?.primary || "#4361ee";
+
+  if (history.length === 0) return null;
+
+  return (
+    <div style={sh.wrap}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{ ...sh.header, borderColor: `${primary}22` }}
+      >
+        <span style={sh.headerTitle}>🕐 Recent Scans</span>
+        <span style={{ ...sh.badge, background: `${primary}22`, color: primary }}>{history.length}</span>
+        <span style={sh.chevron}>{open ? "▲" : "▼"}</span>
+      </button>
+
+      {open && (
+        <div style={sh.list}>
+          {history.map((item, i) => {
+            const risk = getRiskConfig(item.score);
+            const preview = item.text.length > 55 ? item.text.slice(0, 55) + "…" : item.text;
+            return (
+              <button
+                key={i}
+                onClick={() => onReload(item)}
+                style={sh.item}
+              >
+                <div style={{ ...sh.dot, background: risk.color }} />
+                <div style={sh.itemBody}>
+                  <div style={sh.itemText}>{preview}</div>
+                  <div style={sh.itemMeta}>
+                    <span style={{ color: risk.color, fontWeight: 700 }}>{item.score}%</span>
+                    <span style={sh.itemMetaSep}>·</span>
+                    <span style={sh.itemRisk}>{risk.label}</span>
+                    <span style={sh.itemMetaSep}>·</span>
+                    <span style={sh.itemTime}>{item.time}</span>
+                  </div>
+                </div>
+                <span style={sh.reload}>↩</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const sh = {
+  wrap: {
+    marginBottom: 16,
+    border: "1px solid rgba(255,255,255,0.06)",
+    borderRadius: 14,
+    overflow: "hidden",
+    background: "rgba(255,255,255,0.015)",
+    animation: "fadeIn 0.3s ease",
+  },
+  header: {
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "10px 16px",
+    background: "transparent",
+    border: "none",
+    borderBottom: "1px solid",
+    cursor: "pointer",
+    fontFamily: "'Space Grotesk', sans-serif",
+  },
+  headerTitle: { fontSize: 12, fontWeight: 700, color: "#7777aa", flex: 1, textAlign: "left" },
+  badge: { fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 20 },
+  chevron: { fontSize: 9, color: "#444466" },
+  list: { display: "flex", flexDirection: "column", gap: 0 },
+  item: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    padding: "10px 16px",
+    background: "transparent",
+    border: "none",
+    borderBottom: "1px solid rgba(255,255,255,0.04)",
+    cursor: "pointer",
+    textAlign: "left",
+    transition: "background 0.15s",
+    fontFamily: "'Space Grotesk', sans-serif",
+  },
+  dot: { width: 8, height: 8, borderRadius: "50%", flexShrink: 0 },
+  itemBody: { flex: 1, minWidth: 0 },
+  itemText: { fontSize: 12, color: "#ccccdd", lineHeight: 1.4, marginBottom: 3, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" },
+  itemMeta: { display: "flex", alignItems: "center", gap: 4, fontSize: 11 },
+  itemMetaSep: { color: "#333355" },
+  itemRisk: { color: "#555577" },
+  itemTime: { color: "#333355" },
+  reload: { fontSize: 14, color: "#333355", flexShrink: 0 },
+};
+
 // ── Feedback Component ────────────────────────────────────────────────────────
 function FeedbackSection({ theme }) {
-  const [feedback,    setFeedback]    = useState(null); // "yes" | "no" | null
+  const [feedback,    setFeedback]    = useState(null);
   const [showInput,   setShowInput]   = useState(false);
   const [correction,  setCorrection]  = useState("");
   const [submitted,   setSubmitted]   = useState(false);
@@ -60,7 +159,6 @@ function FeedbackSection({ theme }) {
 
   const handleSubmit = () => {
     if (!correction.trim()) return;
-    // For now just store in sessionStorage — will connect to DB later
     const existing = JSON.parse(sessionStorage.getItem("isthisscam_feedback") || "[]");
     existing.push({ feedback: "wrong", correction, timestamp: new Date().toISOString() });
     sessionStorage.setItem("isthisscam_feedback", JSON.stringify(existing));
@@ -83,7 +181,6 @@ function FeedbackSection({ theme }) {
       <div style={s.feedbackLabel}>Was this result correct?</div>
 
       <div style={s.feedbackBtns}>
-        {/* 👍 Yes */}
         <button
           style={{
             ...s.feedbackBtn,
@@ -96,7 +193,6 @@ function FeedbackSection({ theme }) {
           👍 Yes, Correct
         </button>
 
-        {/* 👎 No */}
         <button
           style={{
             ...s.feedbackBtn,
@@ -110,7 +206,6 @@ function FeedbackSection({ theme }) {
         </button>
       </div>
 
-      {/* Correction input — shows only on 👎 */}
       {showInput && (
         <div style={s.correctionWrap}>
           <div style={s.correctionLabel}>What was it actually? (optional)</div>
@@ -278,7 +373,7 @@ function ResultCard({ result, theme }) {
         >📤 Share Warning</button>
       </div>
 
-      {/* ⭐ Feedback Section */}
+      {/* Feedback Section */}
       <FeedbackSection theme={theme} />
 
     </BorderGlow>
@@ -293,8 +388,30 @@ export default function Scanner({ theme, setThemeKey }) {
   const [error,     setError]     = useState(null);
   const [scanHover, setScanHover] = useState(false);
   const [exHovered, setExHovered] = useState(null);
+  const [history,   setHistory]   = useState([]);  // ← Scan History state
 
   const primary = theme?.primary || "#4361ee";
+
+  // ── Helper: add to history ──────────────────────────────────────────────────
+  const addToHistory = (text, data) => {
+    const score = data.scam_score ?? data.score ?? 0;
+    const now = new Date();
+    const time = now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+    const entry = { text, score, time, result: data };
+    setHistory((prev) => {
+      const filtered = prev.filter((h) => h.text !== text); // avoid duplicates
+      return [entry, ...filtered].slice(0, 5);              // keep last 5
+    });
+  };
+
+  // ── Helper: reload from history ─────────────────────────────────────────────
+  const handleReload = (item) => {
+    setInput(item.text);
+    setResult(item.result);
+    setThemeKey(getThemeFromScore(item.score));
+    setError(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const handleCheck = async () => {
     if (!input.trim()) return;
@@ -312,6 +429,7 @@ export default function Scanner({ theme, setThemeKey }) {
       const data = await res.json();
       setResult(data);
       setThemeKey(getThemeFromScore(data.scam_score ?? data.score ?? 0));
+      addToHistory(input, data);  // ← Save to history after successful scan
     } catch (err) {
       setError(err.message || "Backend error. Make sure FastAPI is running.");
     } finally {
@@ -331,9 +449,11 @@ export default function Scanner({ theme, setThemeKey }) {
         textarea:focus { border-color: ${primary}66 !important; box-shadow: 0 0 0 3px ${primary}14 !important; outline: none; }
         .ex-btn:hover { border-color: ${primary}66 !important; color: ${primary} !important; background: ${primary}10 !important; }
         .feedback-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+        .history-item:hover { background: rgba(255,255,255,0.04) !important; }
       `}</style>
 
       <div style={s.main}>
+
         {/* Hero */}
         <div style={s.heroWrap}>
           <div style={s.auroraWrap}>
@@ -350,6 +470,24 @@ export default function Scanner({ theme, setThemeKey }) {
             <p style={s.heroSub}>URL · UPI ID · Phone Number · Job Offer · WhatsApp Message</p>
           </div>
         </div>
+
+        {/* ── SCAN HISTORY — shown above the input card if history exists ── */}
+        <ScanHistory
+          history={history}
+          onReload={handleReload}
+          theme={theme}
+        />
+
+        {/* ── IMAGE UPLOAD (OCR) ── */}
+        <ImageUpload
+          theme={theme}
+          onTextExtracted={(text) => {
+            setInput(text);
+            setResult(null);
+            setThemeKey("default");
+            setError(null);
+          }}
+        />
 
         {/* Input card */}
         <BorderGlow
@@ -435,6 +573,7 @@ export default function Scanner({ theme, setThemeKey }) {
             <ResultCard result={result} theme={theme} />
           </div>
         )}
+
       </div>
     </div>
   );
@@ -517,7 +656,6 @@ const s = {
   actions:   { display: "flex", gap: 8, padding: "12px 18px", borderTop: "1px solid rgba(255,255,255,0.05)" },
   actionBtn: { flex: 1, padding: "10px", borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: "pointer", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#9999bb", transition: "all 0.2s", fontFamily: "'Space Grotesk', sans-serif" },
 
-  // ── Feedback styles ──────────────────────────────────────────────────────────
   feedbackWrap:   { padding: "14px 18px" },
   feedbackLabel:  { fontSize: 12, color: "#7777aa", marginBottom: 10, textAlign: "center", fontWeight: 600 },
   feedbackBtns:   { display: "flex", gap: 10, justifyContent: "center" },
