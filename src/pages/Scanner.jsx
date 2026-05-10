@@ -1,4 +1,5 @@
 import ImageUpload from "../ImageUpload";
+import { SafetyTips } from "../components/SafetyTips";
 import { useState } from "react";
 import Aurora from "../Aurora";
 import BorderGlow from "../BorderGlow";
@@ -571,9 +572,9 @@ export default function Scanner({ theme, setThemeKey }) {
         {result && !loading && (
           <div style={{ animation: "fadeUp 0.45s ease", marginTop: 0 }}>
             <ResultCard result={result} theme={theme} />
+            <SafetyTips score={result.scam_score ?? result.score ?? 0} theme={theme} />
           </div>
         )}
-
       </div>
     </div>
   );
