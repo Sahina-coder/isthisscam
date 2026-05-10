@@ -1,6 +1,6 @@
 import ImageUpload from "../ImageUpload";
 import { SafetyTips } from "../components/SafetyTips";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Aurora from "../Aurora";
 import BorderGlow from "../BorderGlow";
 import AnimatedList from "../AnimatedList";
@@ -39,6 +39,28 @@ const LOADING_STEPS = [
   "📞 Cross-referencing UPI / phone via Sanchar Saathi…",
   "📊 Calculating scam probability score…",
 ];
+
+// ── Count-Up Hook ─────────────────────────────────────────────────────────────
+function useCountUp(target, duration = 1200) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    setCount(0);
+    if (target === 0) return;
+    let current = 0;
+    const step = Math.ceil(target / (duration / 16));
+    const timer = setInterval(() => {
+      current += step;
+      if (current >= target) {
+        setCount(target);
+        clearInterval(timer);
+      } else {
+        setCount(current);
+      }
+    }, 16);
+    return () => clearInterval(timer);
+  }, [target, duration]);
+  return count;
+}
 
 // ── Scan History Component ────────────────────────────────────────────────────
 function ScanHistory({ history, onReload, theme }) {
@@ -236,18 +258,20 @@ function FeedbackSection({ theme }) {
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function ScoreCircle({ score, color }) {
+  const animated = useCountUp(score, 1200);
   return (
     <div style={{ ...s.circle, borderColor: color, boxShadow: `0 0 28px ${color}44` }}>
-      <span style={{ ...s.circleNum, color }}>{score}</span>
+      <span style={{ ...s.circleNum, color }}>{animated}</span>
       <span style={s.circleLabel}>SCAM %</span>
     </div>
   );
 }
 
 function ScoreBar({ score, color }) {
+  const animated = useCountUp(score, 1200);
   return (
     <div style={s.barOuter}>
-      <div style={{ ...s.barInner, width: `${score}%`, background: `linear-gradient(90deg, ${color}66, ${color})` }} />
+      <div style={{ ...s.barInner, width: `${animated}%`, background: `linear-gradient(90deg, ${color}66, ${color})` }} />
     </div>
   );
 }
@@ -389,7 +413,7 @@ export default function Scanner({ theme, setThemeKey }) {
   const [error,     setError]     = useState(null);
   const [scanHover, setScanHover] = useState(false);
   const [exHovered, setExHovered] = useState(null);
-  const [history,   setHistory]   = useState([]);  // ← Scan History state
+  const [history,   setHistory]   = useState([]);
 
   const primary = theme?.primary || "#4361ee";
 
@@ -400,8 +424,8 @@ export default function Scanner({ theme, setThemeKey }) {
     const time = now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
     const entry = { text, score, time, result: data };
     setHistory((prev) => {
-      const filtered = prev.filter((h) => h.text !== text); // avoid duplicates
-      return [entry, ...filtered].slice(0, 5);              // keep last 5
+      const filtered = prev.filter((h) => h.text !== text);
+      return [entry, ...filtered].slice(0, 5);
     });
   };
 
@@ -430,7 +454,7 @@ export default function Scanner({ theme, setThemeKey }) {
       const data = await res.json();
       setResult(data);
       setThemeKey(getThemeFromScore(data.scam_score ?? data.score ?? 0));
-      addToHistory(input, data);  // ← Save to history after successful scan
+      addToHistory(input, data);
     } catch (err) {
       setError(err.message || "Backend error. Make sure FastAPI is running.");
     } finally {
@@ -472,14 +496,14 @@ export default function Scanner({ theme, setThemeKey }) {
           </div>
         </div>
 
-        {/* ── SCAN HISTORY — shown above the input card if history exists ── */}
+        {/* Scan History */}
         <ScanHistory
           history={history}
           onReload={handleReload}
           theme={theme}
         />
 
-        {/* ── IMAGE UPLOAD (OCR) ── */}
+        {/* Image Upload (OCR) */}
         <ImageUpload
           theme={theme}
           onTextExtracted={(text) => {
@@ -575,6 +599,7 @@ export default function Scanner({ theme, setThemeKey }) {
             <SafetyTips score={result.scam_score ?? result.score ?? 0} theme={theme} />
           </div>
         )}
+
       </div>
     </div>
   );
@@ -634,7 +659,7 @@ const s = {
   verdictBadge: { display: "inline-block", padding: "4px 12px", borderRadius: 20, fontSize: 11, fontWeight: 800, fontFamily: "'Space Grotesk', sans-serif", letterSpacing: "0.3px", marginBottom: 8 },
   categoryText: { fontSize: 11, color: "#6666aa", marginBottom: 8 },
   barOuter:     { height: 5, background: "rgba(255,255,255,0.06)", borderRadius: 100, overflow: "hidden" },
-  barInner:     { height: "100%", borderRadius: 100, transition: "width 1.3s ease" },
+  barInner:     { height: "100%", borderRadius: 100 },
 
   section:      { padding: "14px 22px", borderTop: "1px solid rgba(255,255,255,0.05)" },
   sectionLabel: { fontSize: 10, fontWeight: 700, color: "#5555aa", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 10 },
